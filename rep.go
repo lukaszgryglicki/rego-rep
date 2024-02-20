@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bufio"
+	"fmt"
 	"os"
+	"strings"
 )
 
 const (
@@ -17,6 +20,44 @@ func rep() error {
 	times := os.Getenv("TIMES")
 	if times == "" {
 		times = gTimes
+	}
+	shasf, err := os.Open(shas)
+	if err != nil {
+		return err
+	}
+	defer shasf.Close()
+	shass := bufio.NewScanner(shasf)
+	shasm1 := make(map[string]map[string]struct{})
+	shasm2 := make(map[string]map[string]struct{})
+	for shass.Scan() {
+		line := shass.Text()
+		ary := strings.Fields(line)
+		sha := ary[0]
+		fn := strings.Join(ary[1:], " ")
+		_, ok := shasm1[fn]
+		if !ok {
+			shasm1[fn] = make(map[string]struct{})
+		}
+		shasm1[fn][sha] = struct{}{}
+		_, ok = shasm2[sha]
+		if !ok {
+			shasm2[sha] = make(map[string]struct{})
+		}
+		shasm2[sha][fn] = struct{}{}
+	}
+	err = shass.Err()
+	if err != nil {
+		return err
+	}
+	for k, v := range shasm1 {
+		if len(v) > 1 {
+			fmt.Printf("file '%s' has multiple SHAs: %+v\n", k, v)
+		}
+	}
+	for k, v := range shasm2 {
+		if len(v) > 1 {
+			fmt.Printf("SHA '%s' matches multiple files: %+v\n", k, v)
+		}
 	}
 	return nil
 }
