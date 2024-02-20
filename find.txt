@@ -1,0 +1,1 @@
+find . -iname "*.rego" -exec ls -lt --time-style='+%Y' "{}" \; > ~/rego_times.txt &

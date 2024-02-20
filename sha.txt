@@ -1,0 +1,1 @@
+find . -iname "*.rego" -exec sha512sum "{}" \; > ~/rego_shas.txt &
